@@ -1,0 +1,31 @@
+I have almost 12+ years experience on SQL/ETL like SSSI and Informatica / Power BI Developer, 
+Recently I was working in INFOSYS as a Technology Lead on SQL/ETL
+My Skills Set which I'm using SSIS, Informatica power center, SSRS, SSAS, Azure, SQL server, Power BI, Orecal DB etc.
+Created SSIS package, trigger, procedures, function, Indexes, write complex SQL query,optimization and fine tuning etc.
+Created dim and fact table as well build the data warehouse.
+worked on Informatica Repository, Mapping data in Designer, workflow Manager and Monitor Workflow. scheduling job using Control M
+I was also involved in creating models within Informatica power center. Okay. And this basically included designing and maintaining models. 
+Experince of the reporting part like created visualization using Power Bi with Dax
+Experience in Unix shell scripting, Python and C#
+
+worked on diffrent-diffrent types of source file like Flat file, xml file, excel file, CSV file
+Supported L2 call like production support, if have any roadblock for production then involved in team and put my input to resolve issue
+Using agile methodologies where we need to give update every day to scrum master and if have any roadblock we can discuss, 
+them once development activity done and unit testing done then moving the code in QA for function testing and then prod
+So i involved in all the phases of SDLC.
+
+I was recently working in Infosys as a Technology Lead, I am working on onshore and My team working offshore from India.
+Particular project my rolls and responsibility was Focusing on the data management, extraction, transformation and loading using SQL Server Integration Services. And the project was in basically like, involving supporting a team in handling data loads, data validation and ensuring data integrity at the same time.
+I was supporting the team with the data loads and the manual validations of multiple data sets. And also I was supporting them with the manual checks for data validation and handling like various job failures to maintain the data integrity, and I was also responsible for updating and creating stored procedures to accommodate specific business requirements for the data loads, and also in like scripting and ensuring that the stored procedures are aligned with the defined business logics, okay? And I was also involved in creating models within Informatica power center. Okay. And this basically included designing and maintaining models.
+
+
+Before Infosys  I was working in RSI as Sr. MSBI Developer and i am mostly working on ETL part using Informatica and SSIS. to get source file and business requirements documents like 
+SPEC book and understand the all requirements and Create SSIS package from the scratch and implement all business logic in SSIS package, created SP, mapping documents and load 
+data in to the lower environment and do unit testing, then load data into the TEST environment for QA then after QA approval schedule job to load data into final destination.
+Production supporting, manage documents based on new business requirements, Validation data, manage existing report, supporting to QA team to test data
+select * from cars
+where id in ( select max(id) from cars
+              group by model, brand
+              having count(1) > 1);
+
+
