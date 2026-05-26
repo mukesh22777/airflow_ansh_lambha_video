@@ -1,0 +1,28 @@
+1.	Source : real time data or near Streaming data sample.csv or json file
+
+2.	Destination: Hive Tables and save it as a parquet format
+	1. Hive Table- Bronze (Train_bronze)
+	2. Hive Table- Silver (Train_silver)
+	3. Hive Table- Gold (Train_gold)
+
+3.	Transformation :
+	Do some basic transformation like drop duplicate, fill NA with 0 and pick up only some column, add new column like Load_date and use 	this column for watertmark column, etc.
+4.	Load Type: Incremental load based on watermark column
+5.	Load Frequency: Every 2 hours
+6.	Scheduler: Airflow
+7.	Artchiture : Medallion (Bronze, Silver and Gold layer)
+8.	Use ==> Spark, PySpark, Azure, Git
+
+9.	Environment : DEV, UAT and PROD
+	1. First run in Dev
+	2. second run for UAT
+	3. Third run for PROD
+
+10.	Create Data pipeline with sample.csv file and give me full code step be step as well explain me
+	as well Create files separately like Dag file, conf file etc.
+Note: Create Dag file using decorate or latest way
+
+
+
+
+

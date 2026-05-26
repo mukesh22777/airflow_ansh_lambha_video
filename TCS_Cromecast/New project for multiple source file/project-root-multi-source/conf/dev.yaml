@@ -1,0 +1,27 @@
+env: dev
+aws:
+  access_key: "REPLACE_ME"
+  secret_key: "REPLACE_ME"
+  endpoint: "s3.amazonaws.com"
+  boto3_endpoint: "https://s3.amazonaws.com"
+  region: "us-east-1"
+destination:
+  s3_bucket: "my-data-bucket"
+  s3_prefix: "medallion/dev"
+sources:
+  csv:
+    type: "csv"
+    location_type: "local"
+    path_or_table: "sample_data/sample.csv"
+  json:
+    type: "json"
+    location_type: "local"
+    path_or_table: "sample_data/sample.json"
+  table:
+    type: "table"
+    location_type: "sqlserver"
+    path_or_table: "dbo.customer_orders"
+    jdbc_url: "jdbc:sqlserver://localhost:1433;databaseName=medallion_db"
+    username: "sa"
+    password: "YourStrongPassword#1"
+    driver: "com.microsoft.sqlserver.jdbc.SQLServerDriver"

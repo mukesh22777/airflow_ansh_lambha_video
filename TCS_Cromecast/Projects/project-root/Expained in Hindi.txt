@@ -1,0 +1,269 @@
+Project Explanation — Step by Step (Hindi)
+📌 Project Ka Overview
+Kya ho raha hai is pipeline mein:
+
+Train.csv (HR Employee Data)
+    │
+    │  Daily 10 PM (Airflow Trigger)
+    ▼
+┌──────────┐     ┌──────────┐     ┌──────────┐
+│  BRONZE  │ ──→ │  SILVER  │ ──→ │   GOLD   │
+│  (Raw)   │     │ (Clean)  │     │ (Report) │
+└──────────┘     └──────────┘     └──────────┘
+   Hive Table       Hive Table       Hive Table
+   Parquet          Parquet          Parquet
+Simple words mein: HR employee data ko raw form mein store karo (Bronze), clean karo (Silver), aur business reports banao (Gold).
+
+📁 Step 1: Project Structure Samjho
+project-root/
+│
+├── dags/                    ← Airflow DAG (orchestrator/scheduler)
+│   └── sqlserver_hive_medallion_dag.py
+│
+├── jobs/                    ← PySpark jobs (actual data processing)
+│   ├── bronze_ingest.py     ← Step 1: Raw data load
+│   ├── silver_transform.py  ← Step 2: Clean & transform
+│   ├── gold_aggregate.py    ← Step 3: Business aggregations
+│   └── common/              ← Shared utilities
+│       ├── config.py        ← Configuration loader
+│       ├── logger.py        ← Logging
+│       ├── jdbc.py          ← SQL Server connection
+│       ├── watermark.py     ← Incremental load tracking
+│       ├── validation.py    ← Data quality checks
+│       └── hive_ddl.py      ← Table creation helpers
+│
+├── conf/                    ← Environment configs
+│   ├── dev.yaml             ← Development
+│   ├── uat.yaml             ← Testing
+│   └── prod.yaml            ← Production
+│
+├── sql/
+│   └── hive_ddl.sql         ← Hive table definitions
+│
+└── logs/                    ← Runtime logs
+🔄 Step 2: Pipeline Flow — Kya Hota Hai Roz Raat 10 Baje
+Phase 1: File Check (DAG ka pehla task)
+@task.short_circuit(task_id="check_file_availability")
+def check_file_availability() -> bool:
+    # 1. Config load karo (dev.yaml/uat.yaml/prod.yaml)
+    # 2. Train.csv file exist karti hai?
+    # 3. File 24 ghante se purani toh nahi?
+    # Agar file nahi mili ya purani hai:
+    print("File is not available to process")
+    return False  # ← Pipeline RUKI, aage nahi chalegi
+Hindi mein: Sabse pehle check hota hai ki Train.csv file available hai ya nahi. Agar file nahi hai ya 24 ghante se update nahi hui, toh pipeline ruk jaati hai aur message print hota hai: "File is not available to process".
+
+Phase 2: Bronze Ingest (Raw Data Load)
+File: jobs/bronze_ingest.py
+
+Kya karta hai:
+
+✅ Config se source path padho (C:/data/Train.csv)
+✅ Watermark check karo — "Pichli baar kab tak ka data load hua tha?"
+✅ Full Load (pehli baar): Poori file read karo
+✅ Incremental Load (baad mein): Sirf naye rows (jinka Load_date > last watermark)
+✅ Schema validate karo (35 columns sahi hain?)
+✅ Load_date column add karo (current timestamp)
+✅ Data ko JSON payload mein convert karo
+✅ Train_bronze Hive table mein write karo (Parquet format)
+Bronze table mein kya store hota hai:
+
+| payload (JSON)          | _ingest_ts | _run_id      | _source_table     | ingest_date |
+|-------------------------|------------|--------------|-------------------|-------------|
+| {"Age":41,"Attrition":..}| 2026-05-05 | 20260505220000| filesystem.Train.csv| 2026-05-05 |
+Kyun JSON payload?
+Agar future mein source file mein columns change hon toh Bronze break nahi hoga — raw data safe rehta hai.
+
+Phase 3: Silver Transform (Cleaning)
+File: jobs/silver_transform.py
+
+Kya karta hai:
+
+✅ Bronze table se current run ka data read karo
+✅ JSON payload ko wapas columns mein parse karo
+✅ Drop Duplicates — same rows hataao
+✅ Fill NA with 0 — null values ko 0 se replace karo
+✅ Select relevant columns — sirf zaroori 35 columns rakho
+✅ Load_date retain karo (watermark ke liye)
+✅ Train_silver Hive table mein write karo (Parquet)
+Code samjho:
+
+curated = raw_df.select(*RELEVANT_COLUMNS, "Load_date", "_run_id") \
+                .dropDuplicates()   # ← Duplicate rows hataao
+                .fillna(0)          # ← NULL → 0
+Silver table mein kya store hota hai:
+
+| Age | Attrition | Department | MonthlyIncome | ... | Load_date  | _run_id |
+|-----|-----------|------------|---------------|-----|------------|---------|
+| 41  | Yes       | Sales      | 5993          | ... | 2026-05-05 | 202605..|
+| 49  | No        | R&D        | 5130          | ... | 2026-05-05 | 202605..|
+Phase 4: Gold Aggregate (Business Reports)
+File: jobs/gold_aggregate.py
+
+Kya karta hai:
+
+✅ Silver table se current run ka data read karo
+✅ Business aggregations calculate karo:
+Department-wise employee count
+Average Monthly Income
+Average Years at Company
+Attrition-wise breakdown
+Gender-wise breakdown
+✅ Train_gold Hive table mein write karo (Parquet)
+✅ Watermark update — success hone ke baad hi last processed timestamp save karo
+Code samjho:
+
+agg_df = silver_df.groupBy("Load_date", "Department", "Attrition", "Gender") \
+    .agg(
+        F.count("*").alias("employee_count"),           # Kitne employees
+        F.avg("MonthlyIncome").alias("avg_monthly_income"),  # Average salary
+        F.avg("YearsAtCompany").alias("avg_years_at_company"), # Avg experience
+    )
+Gold table mein kya store hota hai:
+
+| Load_date  | Department | Attrition | Gender | employee_count | avg_monthly_income | avg_years_at_company |
+|------------|-----------|-----------|--------|----------------|-------------------|---------------------|
+| 2026-05-05 | Sales     | Yes       | Male   | 45             | 6200.50           | 3.2                 |
+| 2026-05-05 | R&D       | No        | Female | 120            | 8500.75           | 5.8                 |
+⚡ Step 3: Full Load vs Incremental Load — Fark Samjho
+Full Load (Pehli Baar)
+Day 1: Koi watermark nahi hai
+    ↓
+Poori Train.csv padho (saare rows)
+    ↓
+Bronze mein store karo
+    ↓
+Watermark save karo: "Load_date = 2026-05-05 22:00:00"
+Incremental Load (Baad ke Runs)
+Day 2: Watermark = "2026-05-05 22:00:00"
+    ↓
+Sirf woh rows padho jinka Load_date > 2026-05-05 22:00:00
+    ↓
+Bronze mein APPEND karo (puraane data ke saath)
+    ↓
+Watermark update: "Load_date = 2026-05-06 22:00:00"
+Fayda: Roz poora data process nahi karna padta — sirf naya data process hota hai = faster + cheaper.
+
+🧠 Step 4: Watermark Kaise Kaam Karta Hai
+Control Table (control.etl_watermark_state):
+
+| environment | source_table | watermark_column | last_success_value   | last_status |
+|-------------|-------------|-----------------|---------------------|-------------|
+| dev         | Train       | Load_date       | 2026-05-05 22:00:00 | SUCCESS     |
+| uat         | Train       | Load_date       | 2026-05-05 22:00:00 | SUCCESS     |
+| prod        | Train       | Load_date       | 2026-05-05 22:00:00 | SUCCESS     |
+Key rule: Watermark sirf Gold success ke baad update hota hai:
+
+Agar Bronze/Silver fail ho → watermark NAHI badlega
+Next run same data phir se process karega
+Data loss kabhi nahi hoga!
+Environments isolated hain: DEV ka watermark PROD ko affect nahi karega.
+
+🗓️ Step 5: Airflow DAG — Orchestration Samjho
+File: dags/sqlserver_hive_medallion_dag.py
+
+@dag(
+    dag_id="sqlserver_hive_medallion_dag",
+    schedule="0 22 * * *",   # ← Roz raat 10 PM
+    catchup=False,            # ← Purane din ka data process mat karo
+    max_active_runs=1,        # ← Ek time pe ek hi run
+)
+def sqlserver_hive_medallion_dag():
+
+    # Task 1: File available hai?
+    gate = check_file_availability()
+
+    # Task 2: Bronze (raw load)
+    bronze_run_id = run_bronze_ingest()
+
+    # Task 3: Silver (clean)
+    silver_run_id = run_silver_transform(bronze_run_id)
+
+    # Task 4: Gold (aggregate)
+    run_gold_aggregate(silver_run_id)
+
+    # Order: gate → bronze → silver → gold
+    gate >> bronze_run_id
+TaskFlow API (@dag, @task) ka fayda:
+
+Code cleaner hai (purane BashOperator se)
+Tasks ke beech data pass karna easy hai (XCom automatic)
+Airflow 2.x ka latest recommended pattern
+⚙️ Step 6: Configuration — DEV/UAT/PROD
+3 alag config files:
+
+File	Environment	SQL Server	Hive DB
+conf/dev.yaml	Development	dev-sqlserver.database.windows.net	hr_analytics
+conf/uat.yaml	UAT/Testing	uat-sqlserver.database.windows.net	hr_analytics_uat
+conf/prod.yaml	Production	prod-sqlserver.database.windows.net	hr_analytics_prod
+Kaise switch karein:
+
+# DEV mein run karo
+spark-submit jobs/bronze_ingest.py --config conf/dev.yaml --env dev
+
+# PROD mein run karo
+spark-submit jobs/bronze_ingest.py --config conf/prod.yaml --env prod
+Airflow mein: Variable.set("pipeline_env", "prod") — bas!
+
+🏃 Step 7: Kaise Run Karein
+DEV mein test (manually):
+# Step 1: Bronze
+spark-submit jobs/bronze_ingest.py --config conf/dev.yaml --run-id test001 --env dev
+
+# Step 2: Silver
+spark-submit jobs/silver_transform.py --config conf/dev.yaml --run-id test001 --env dev
+
+# Step 3: Gold
+spark-submit jobs/gold_aggregate.py --config conf/dev.yaml --run-id test001 --env dev
+Airflow se automatic (PROD):
+Airflow UI mein jaao
+Admin → Variables mein set karo: pipeline_env = prod
+DAG enable karo: sqlserver_hive_medallion_dag
+Roz 10 PM automatic chalega!
+🛡️ Step 8: Error Handling & Validation
+Har step pe validation hoti hai:
+
+Check	Kahan	Kya Karta Hai
+File exists?	DAG (first task)	File nahi → pipeline ruki
+Schema valid?	Bronze	35 columns match nahi → ERROR
+Empty data?	Silver/Gold	Koi row nahi → skip (no error)
+Duplicates?	Silver	dropDuplicates() se remove
+Null values?	Silver	fillna(0) se fix
+Watermark safe?	Gold	Sirf success pe update
+Agar koi step fail ho:
+
+Airflow 1 retry karega (5 min baad)
+Phir bhi fail → alert/email
+Watermark safe hai — next run same data phir process karega
+📊 Step 9: Hive Tables — DDL Summary
+Table	Layer	Format	Content
+hr_analytics.Train_bronze	Bronze	Parquet (partitioned by ingest_date)	Raw JSON payload + metadata
+hr_analytics.Train_silver	Silver	Parquet	Cleaned 35 columns + Load_date
+hr_analytics.Train_gold	Gold	Parquet (partitioned by Load_date)	Dept/Gender/Attrition aggregations
+control.etl_watermark_state	Control	Parquet	Watermark tracking per environment
+🎯 Quick Revision — Ek Diagram Mein Sab
+┌─────────────────────────────────────────────────────────────┐
+│                  DAILY 10 PM (AIRFLOW)                        │
+│                                                              │
+│  ① File Check ─→ File nahi? STOP + "not available"          │
+│       │                                                      │
+│       ▼ (file available)                                     │
+│  ② Bronze ─→ Train.csv read → JSON payload → Train_bronze   │
+│       │         (Full first time / Incremental after)        │
+│       ▼                                                      │
+│  ③ Silver ─→ Parse JSON → Drop duplicates → fillNA(0)       │
+│       │         → Select columns → Add Load_date            │
+│       │         → Write Train_silver                         │
+│       ▼                                                      │
+│  ④ Gold ─→ GroupBy Dept/Gender/Attrition → Aggregations     │
+│       │       → Write Train_gold                             │
+│       │       → UPDATE WATERMARK (only on success!)          │
+│       ▼                                                      │
+│  ✅ DONE — Next run tomorrow 10 PM                           │
+└─────────────────────────────────────────────────────────────┘
+Koi specific file ka code aur detail mein samjhna hai, ya koi doubt hai toh batao! 🙂
+
+Editing queued message
+Cancel
+
+Skills

@@ -1,0 +1,24 @@
+project-root-streaming/
+├── sample_data/
+│   └── sample.csv                    ← 24 rows realistic test data
+├── dags/
+│   └── streaming_medallion_dag.py    ← TaskFlow DAG (every 2 hours)
+├── jobs/
+│   ├── bronze_ingest.py              ← CSV/JSON ingest + freshness check
+│   ├── silver_transform.py           ← Drop duplicates, fillNA(0), select cols
+│   ├── gold_aggregate.py             ← Aggregations + watermark update
+│   └── common/
+│       ├── config.py                 ← --env arg + YAML loader
+│       ├── logger.py                 ← Rotating logger
+│       ├── watermark.py              ← Environment-aware incremental tracking
+│       ├── validation.py             ← Format, schema, freshness checks
+│       └── hive_ddl.py               ← Hive DDL executor
+├── conf/
+│   ├── dev.yaml
+│   ├── uat.yaml
+│   └── prod.yaml
+├── sql/
+│   └── hive_ddl.sql                  ← Train_bronze/silver/gold DDL
+├── logs/.gitkeep
+├── .gitignore
+└── README_streaming_pipeline.md      ← Full Hindi+English explanation

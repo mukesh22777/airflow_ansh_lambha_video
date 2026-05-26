@@ -1,0 +1,17 @@
+env: uat
+app_name: streaming-medallion-uat
+source:
+  format: csv
+  path: sample_data/sample.csv
+  freshness_hours: 2
+hive:
+  database: train_uat
+  bronze_table: Train_bronze
+  silver_table: Train_silver
+  gold_table: Train_gold
+  warehouse_dir: spark-warehouse
+watermark:
+  state_file: state/watermark_uat.json
+spark:
+  master: local[*]
+  shuffle_partitions: 8

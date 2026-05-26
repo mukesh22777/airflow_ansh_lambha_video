@@ -1,0 +1,30 @@
+env: dev
+source:
+  type: file
+  file_path: C:/data/Train.csv
+  max_file_age_hours: 24
+sqlserver:
+  host: dev-sqlserver.database.windows.net
+  port: 1433
+  database: hrdb_dev
+  driver: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  encrypt: "true"
+  trustServerCertificate: "false"
+  user: ${SQLSERVER_USER}
+  password: ${SQLSERVER_PASSWORD}
+hive:
+  database: hr_analytics
+spark:
+  app_name_prefix: train_medallion_dev
+  shuffle_partitions: 200
+  adaptive_enabled: true
+watermark:
+  control_db: control
+  control_table: etl_watermark_state
+tables:
+  source_schema: dbo
+  source_table: Train
+  bronze_table: hr_analytics.Train_bronze
+  silver_table: hr_analytics.Train_silver
+  gold_table: hr_analytics.Train_gold
+  watermark_column: Load_date

@@ -1,0 +1,30 @@
+1.	Source location : S3, SQL or it can we any location
+2.	Source type : csv file, json file,table (can be any location)
+3.	source file / Table name : take sample file or table
+4.	Source File Frequency : Daily but if file is not updated then don't run data pipeline and print message : "Fine 	is not available to process"
+
+5.	Destination: S3 (Always)
+	
+6.	Transformation :
+	Do some basic transformation like drop duplicate, fill NA with 0 and pick up only some column, add new column like Load_date and use 	this column for watertmark column, etc.
+7.	Load Type: Full load and then Incremental load based on watermark column
+8.	Load Frequency: Daily at 10 PM
+9.	Scheduler: Airflow
+10.	Artchiture : Medallion (Bronze, Silver and Gold layer)
+11.	Use ==> Spark, PySpark, Azure, S3, Git
+
+12.	Environment : DEV, UAT and PROD
+	1. First run in Dev
+	2. second run for UAT
+	3. Third run for PROD
+
+13.	Create Data pipeline and give me full code step be step as well explain me
+	as well Create files separately like Dag file, conf file
+
+Note: Create Dag file using decorate or latest way and create diffrent differet folder for each source file like csv, json, table
+So Souce file location can be any and destination is fixed - S3, also souce file can be any type.
+
+
+
+
+

@@ -1,0 +1,52 @@
+env: prod
+timezone: "America/Chicago"
+pipeline:
+  name: sqlserver_hive_medallion
+  schedule_cron: "0 22 * * *"
+  max_active_runs: 1
+  retries: 2
+  retry_delay_minutes: 10
+
+spark:
+  app_name_prefix: medallion_etl
+  shuffle_partitions: 200
+  adaptive_enabled: true
+
+hive:
+  warehouse_dir: "/user/hive/warehouse"
+
+azure:
+  storage_account: "mystorageacct"
+  container: "datalake"
+  bronze_path: "abfss://datalake@mystorageacct.dfs.core.windows.net/bronze"
+  silver_path: "abfss://datalake@mystorageacct.dfs.core.windows.net/silver"
+  gold_path: "abfss://datalake@mystorageacct.dfs.core.windows.net/gold"
+
+sqlserver:
+  host: "sqlserver-prod.database.windows.net"
+  port: 1433
+  database: "SalesDB"
+  driver: "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+  encrypt: "true"
+  trustServerCertificate: "false"
+
+watermark:
+  control_db: "control"
+  control_table: "etl_watermark_state"
+  default_low_value: "1900-01-01 00:00:00"
+
+tables:
+  - source_schema: "dbo"
+    source_table: "Customers"
+    primary_key: "CustomerID"
+    watermark_column: "ModifiedDate"
+    bronze_table: "bronze.customers_raw"
+    silver_table: "silver.customers_curated"
+    gold_table: "gold.customer_daily_metrics"
+  - source_schema: "dbo"
+    source_table: "Orders"
+    primary_key: "OrderID"
+    watermark_column: "ModifiedDate"
+    bronze_table: "bronze.orders_raw"
+    silver_table: "silver.orders_curated"
+    gold_table: "gold.orders_daily_metrics"
