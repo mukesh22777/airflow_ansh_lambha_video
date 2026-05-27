@@ -1,0 +1,101 @@
+customer_id|customer_name|state|city|plan_type|monthly_bill|payment_status|load_date
+1001|Mukesh Sharma|NJ|Jersey City|Premium|120.50|PAID|2026-05-01
+1002|John Smith|NY|New York|Basic|75.25|PAID|2026-05-01
+1003|Emma Johnson|CA|Los Angeles|Premium|140.00|PENDING|2026-05-01
+1004|David Brown|TX|Dallas|Standard|95.75|PAID|2026-05-01
+1005|Sophia Davis|FL|Miami|Basic|60.00|FAILED|2026-05-01
+1006|Liam Wilson|WA|Seattle|Premium|155.20|PAID|2026-05-01
+1007|Olivia Martinez|IL|Chicago|Standard|89.40|PAID|2026-05-01
+1008|Noah Anderson|AZ|Phoenix|Basic|70.10|PENDING|2026-05-01
+1009|Ava Thomas|GA|Atlanta|Premium|165.00|PAID|2026-05-01
+1010|William Taylor|NV|Las Vegas|Standard|99.99|FAILED|2026-05-01
+1011|James Moore|NJ|Newark|Basic|55.60|PAID|2026-05-01
+1012|Isabella Jackson|CA|San Diego|Premium|180.75|PAID|2026-05-01
+1013|Benjamin White|TX|Houston|Standard|92.10|PENDING|2026-05-01
+1014|Mia Harris|FL|Orlando|Basic|68.30|PAID|2026-05-01
+1015|Lucas Martin|CO|Denver|Premium|145.90|FAILED|2026-05-01
+1016|Charlotte Thompson|OH|Columbus|Standard|88.00|PAID|2026-05-01
+1017|Henry Garcia|PA|Philadelphia|Basic|72.25|PENDING|2026-05-01
+1018|Amelia Martinez|MI|Detroit|Premium|158.60|PAID|2026-05-01
+1019|Alexander Robinson|NC|Charlotte|Standard|97.80|FAILED|2026-05-01
+1020|Harper Clark|VA|Richmond|Basic|64.20|PAID|2026-05-01
+1021|Daniel Rodriguez|NJ|Hoboken|Premium|175.50|PAID|2026-05-01
+1022|Evelyn Lewis|NY|Buffalo|Standard|90.40|PENDING|2026-05-01
+1023|Matthew Lee|CA|San Jose|Basic|59.75|FAILED|2026-05-01
+1024|Abigail Walker|TX|Austin|Premium|162.10|PAID|2026-05-01
+1025|Joseph Hall|FL|Tampa|Standard|101.00|PAID|2026-05-01
+1026|Emily Allen|WA|Tacoma|Basic|67.50|PENDING|2026-05-01
+1027|Samuel Young|IL|Naperville|Premium|170.90|FAILED|2026-05-01
+1028|Elizabeth Hernandez|AZ|Mesa|Standard|93.45|PAID|2026-05-01
+1029|Jackson King|GA|Savannah|Basic|58.20|PAID|2026-05-01
+1030|Sofia Wright|NV|Reno|Premium|182.30|PENDING|2026-05-01
+1031|Aiden Lopez|NJ|Edison|Standard|98.60|FAILED|2026-05-01
+1032|Scarlett Hill|CA|Sacramento|Basic|66.90|PAID|2026-05-01
+1033|Logan Scott|TX|Plano|Premium|160.00|PAID|2026-05-01
+1034|Victoria Green|FL|Jacksonville|Standard|94.15|PENDING|2026-05-01
+1035|Sebastian Adams|WA|Bellevue|Basic|62.00|FAILED|2026-05-01
+1036|Grace Baker|IL|Aurora|Premium|177.40|PAID|2026-05-01
+1037|Jack Nelson|AZ|Tempe|Standard|89.25|PAID|2026-05-01
+1038|Chloe Carter|GA|Athens|Basic|57.80|PENDING|2026-05-01
+1039|Owen Mitchell|NV|Henderson|Premium|168.90|FAILED|2026-05-01
+1040|Lily Perez|NJ|Paterson|Standard|91.70|PAID|2026-05-01
+1041|Gabriel Roberts|NY|Albany|Basic|69.40|PAID|2026-05-01
+1042|Hannah Turner|CA|Fresno|Premium|173.60|PENDING|2026-05-01
+1043|Carter Phillips|TX|Irving|Standard|96.20|FAILED|2026-05-01
+1044|Zoey Campbell|FL|Naples|Basic|61.30|PAID|2026-05-01
+1045|Jayden Parker|WA|Spokane|Premium|181.00|PAID|2026-05-01
+1046|Penelope Evans|IL|Peoria|Standard|87.55|PENDING|2026-05-01
+1047|Luke Edwards|AZ|Scottsdale|Basic|56.70|FAILED|2026-05-01
+1048|Riley Collins|GA|Macon|Premium|164.80|PAID|2026-05-01
+1049|Anthony Stewart|NV|Carson City|Standard|95.00|PAID|2026-05-01
+1050|Nora Sanchez|NJ|Clifton|Basic|63.95|PENDING|2026-05-01
+1051|Isaac Morris|NY|Syracuse|Premium|176.20|FAILED|2026-05-01
+1052|Aria Rogers|CA|Oakland|Standard|90.10|PAID|2026-05-01
+1053|Dylan Reed|TX|Arlington|Basic|58.90|PAID|2026-05-01
+1054|Ellie Cook|FL|Fort Lauderdale|Premium|169.40|PENDING|2026-05-01
+1055|Andrew Morgan|WA|Everett|Standard|99.20|FAILED|2026-05-01
+1056|Layla Bell|IL|Rockford|Basic|65.60|PAID|2026-05-01
+1057|Christopher Murphy|AZ|Glendale|Premium|174.50|PAID|2026-05-01
+1058|Aurora Bailey|GA|Augusta|Standard|92.75|PENDING|2026-05-01
+1059|Joshua Rivera|NV|Paradise|Basic|60.40|FAILED|2026-05-01
+1060|Savannah Cooper|NJ|Bayonne|Premium|183.15|PAID|2026-05-01
+1061|Nathan Richardson|NY|Rochester|Standard|88.60|PAID|2026-05-01
+1062|Brooklyn Cox|CA|Long Beach|Basic|67.80|PENDING|2026-05-01
+1063|Ryan Howard|TX|Lubbock|Premium|161.90|FAILED|2026-05-01
+1064|Claire Ward|FL|Sarasota|Standard|94.90|PAID|2026-05-01
+1065|Aaron Torres|WA|Olympia|Basic|59.30|PAID|2026-05-01
+1066|Skylar Peterson|IL|Springfield|Premium|179.25|PENDING|2026-05-01
+1067|Christian Gray|AZ|Gilbert|Standard|97.15|FAILED|2026-05-01
+1068|Lucy Ramirez|GA|Columbus|Basic|62.45|PAID|2026-05-01
+1069|Jonathan James|NV|Summerlin|Premium|171.60|PAID|2026-05-01
+1070|Paisley Watson|NJ|Union City|Standard|91.35|PENDING|2026-05-01
+1071|Thomas Brooks|NY|Yonkers|Basic|66.10|FAILED|2026-05-01
+1072|Anna Kelly|CA|Bakersfield|Premium|166.75|PAID|2026-05-01
+1073|Charles Sanders|TX|Garland|Standard|89.90|PAID|2026-05-01
+1074|Leah Price|FL|Key West|Basic|57.25|PENDING|2026-05-01
+1075|Isaiah Bennett|WA|Kent|Premium|184.00|FAILED|2026-05-01
+1076|Stella Wood|IL|Joliet|Standard|95.45|PAID|2026-05-01
+1077|Josiah Barnes|AZ|Chandler|Basic|61.70|PAID|2026-05-01
+1078|Natalie Ross|GA|Roswell|Premium|172.35|PENDING|2026-05-01
+1079|Adrian Henderson|NV|North Las Vegas|Standard|98.50|FAILED|2026-05-01
+1080|Everly Coleman|NJ|Secaucus|Basic|64.80|PAID|2026-05-01
+1081|Eli Jenkins|NY|Utica|Premium|178.90|PAID|2026-05-01
+1082|Audrey Perry|CA|Anaheim|Standard|93.65|PENDING|2026-05-01
+1083|Hunter Powell|TX|Frisco|Basic|58.40|FAILED|2026-05-01
+1084|Bella Long|FL|Pensacola|Premium|163.25|PAID|2026-05-01
+1085|Connor Patterson|WA|Redmond|Standard|87.30|PAID|2026-05-01
+1086|Violet Hughes|IL|Elgin|Basic|69.55|PENDING|2026-05-01
+1087|Easton Flores|AZ|Peoria|Premium|175.80|FAILED|2026-05-01
+1088|Hazel Washington|GA|Alpharetta|Standard|96.75|PAID|2026-05-01
+1089|Jeremiah Butler|NV|Boulder City|Basic|63.20|PAID|2026-05-01
+1090|Luna Simmons|NJ|Hackensack|Premium|180.40|PENDING|2026-05-01
+1091|Robert Foster|NY|Ithaca|Standard|92.95|FAILED|2026-05-01
+1092|Elliana Gonzales|CA|Irvine|Basic|60.75|PAID|2026-05-01
+1093|Jordan Bryant|TX|McKinney|Premium|167.55|PAID|2026-05-01
+1094|Sarah Alexander|FL|Daytona|Standard|90.25|PENDING|2026-05-01
+1095|Nicholas Russell|WA|Renton|Basic|55.95|FAILED|2026-05-01
+1096|Eva Griffin|IL|Waukegan|Premium|176.45|PAID|2026-05-01
+1097|Adam Diaz|AZ|Surprise|Standard|99.10|PAID|2026-05-01
+1098|Naomi Hayes|GA|Marietta|Basic|68.85|PENDING|2026-05-01
+1099|Jason Myers|NV|Mesquite|Premium|169.95|FAILED|2026-05-01
+1100|Alice Ford|NJ|Princeton|Standard|94.50|PAID|2026-05-01

@@ -1,0 +1,471 @@
+[1] Source SQL Table : 
+SELECT TOP (1000) [CustomerKey]
+      ,[GeographyKey]
+      ,[CustomerAlternateKey]
+      ,[Title]
+      ,[FirstName]
+      ,[MiddleName]
+      ,[LastName]
+      ,[NameStyle]
+      ,[BirthDate]
+      ,[MaritalStatus]
+      ,[Suffix]
+      ,[Gender]
+      ,[EmailAddress]
+      ,[YearlyIncome]
+      ,[TotalChildren]
+      ,[NumberChildrenAtHome]
+      ,[EnglishEducation]
+      ,[SpanishEducation]
+      ,[FrenchEducation]
+      ,[EnglishOccupation]
+      ,[SpanishOccupation]
+      ,[FrenchOccupation]
+      ,[HouseOwnerFlag]
+      ,[NumberCarsOwned]
+      ,[AddressLine1]
+      ,[AddressLine2]
+      ,[Phone]
+      ,[DateFirstPurchase]
+      ,[CommuteDistance]
+  FROM [MyTest].[dbo].[Customer] 
+  
+[2] Final Destination : (data will be load on two location) also do partition
+1. Hive table
+2. S3
+
+[3] Transformation :
+
+Do some Transformation 
+
+[4] Use : Saprk, PySpark, Airflow, data bricks, Kubernetes, git, Visual studio
+
+[5] Load type:
+1. full load
+2. incremantal load 
+
+[6] Use Medallion architecture:
+
+[7] Condition : datapipe line should be run every day 11:30 PM EST (Monday to Friday) 
+and When tables (Customer) updated that time only run ETP data pipeline 
+
+Note:=> Create data pipeline and project and also explain me in hindi step by step
+================================================================================
+customer-data-platform/
+│
+├── airflow/
+│   ├── dags/
+│   │   └── customer_pipeline.py
+│
+├── spark_jobs/
+│   ├── extract.py
+│   ├── bronze_load.py
+│   ├── silver_transform.py
+│   ├── gold_load.py
+│
+├── kubernetes/
+│   ├── spark-deployment.yaml
+│   └── airflow-deployment.yaml
+│
+├── hive/
+│   └── customer_table.hql
+│
+├── configs/
+│   └── app_config.json
+│
+├── docker/
+│   └── Dockerfile
+│
+├── sample_data/
+│   └── customer.csv
+│
+└── README.md
+===================================================================================
+1. airflow/dags/customer_pipeline.py
+
+from airflow import DAG
+from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+from airflow.utils.dates import days_ago
+from datetime import timedelta
+
+DEFAULT_ARGS = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 2,
+    'retry_delay': timedelta(minutes=5)
+}
+
+with DAG(
+    dag_id='customer_data_pipeline',
+    default_args=DEFAULT_ARGS,
+    description='Customer ETL Pipeline',
+    schedule='30 23 * * 1-5',
+    start_date=days_ago(1),
+    catchup=False,
+    tags=['customer', 'spark', 'kubernetes']
+) as dag:
+
+    extract_task = KubernetesPodOperator(
+        namespace='default',
+        image='customer-pipeline:latest',
+        cmds=['python'],
+        arguments=['/app/spark_jobs/extract.py'],
+        labels={'app': 'customer-pipeline'},
+        name='extract-task',
+        task_id='extract_task',
+        get_logs=True,
+        is_delete_operator_pod=True
+    )
+
+    bronze_task = KubernetesPodOperator(
+        namespace='default',
+        image='customer-pipeline:latest',
+        cmds=['python'],
+        arguments=['/app/spark_jobs/bronze_load.py'],
+        labels={'app': 'customer-pipeline'},
+        name='bronze-task',
+        task_id='bronze_task',
+        get_logs=True,
+        is_delete_operator_pod=True
+    )
+
+    silver_task = KubernetesPodOperator(
+        namespace='default',
+        image='customer-pipeline:latest',
+        cmds=['python'],
+        arguments=['/app/spark_jobs/silver_transform.py'],
+        labels={'app': 'customer-pipeline'},
+        name='silver-task',
+        task_id='silver_task',
+        get_logs=True,
+        is_delete_operator_pod=True
+    )
+
+    gold_task = KubernetesPodOperator(
+        namespace='default',
+        image='customer-pipeline:latest',
+        cmds=['python'],
+        arguments=['/app/spark_jobs/gold_load.py'],
+        labels={'app': 'customer-pipeline'},
+        name='gold-task',
+        task_id='gold_task',
+        get_logs=True,
+        is_delete_operator_pod=True
+    )
+
+    extract_task >> bronze_task >> silver_task >> gold_task
+========================================================================
+2. spark_jobs/extract.py
+
+from pyspark.sql import SparkSession
+import json
+
+spark = SparkSession.builder \
+    .appName('CustomerExtract') \
+    .enableHiveSupport() \
+    .getOrCreate()
+
+with open('/app/configs/app_config.json') as config_file:
+    config = json.load(config_file)
+
+jdbc_url = config['sqlserver']['jdbc_url']
+user = config['sqlserver']['user']
+password = config['sqlserver']['password']
+source_table = config['sqlserver']['source_table']
+
+query = f"(SELECT * FROM {source_table}) as customer_data"
+
+customer_df = spark.read \
+    .format('jdbc') \
+    .option('url', jdbc_url) \
+    .option('dbtable', query) \
+    .option('user', user) \
+    .option('password', password) \
+    .option('driver', 'com.microsoft.sqlserver.jdbc.SQLServerDriver') \
+    .load()
+
+customer_df.write.mode('overwrite').parquet('/data/raw/customer/')
+
+print('Data extraction completed successfully')
+=======================================================================
+3. spark_jobs/bronze_load.py
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import current_timestamp
+
+spark = SparkSession.builder \
+    .appName('BronzeLoad') \
+    .enableHiveSupport() \
+    .getOrCreate()
+
+raw_df = spark.read.parquet('/data/raw/customer/')
+
+bronze_df = raw_df.withColumn('ingestion_timestamp', current_timestamp())
+
+bronze_df.write \
+    .mode('overwrite') \
+    .partitionBy('GeographyKey') \
+    .parquet('/data/bronze/customer/')
+
+print('Bronze layer load completed')
+=====================================================================
+4. spark_jobs/silver_transform.py
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, upper
+
+spark = SparkSession.builder \
+    .appName('SilverTransform') \
+    .enableHiveSupport() \
+    .getOrCreate()
+
+bronze_df = spark.read.parquet('/data/bronze/customer/')
+
+silver_df = bronze_df.dropDuplicates(['CustomerKey']) \
+    .filter(col('EmailAddress').isNotNull()) \
+    .withColumn('FirstName', upper(col('FirstName'))) \
+    .withColumn('LastName', upper(col('LastName')))
+
+silver_df.write \
+    .mode('overwrite') \
+    .partitionBy('GeographyKey') \
+    .parquet('/data/silver/customer/')
+
+print('Silver transformation completed')
+=================================================================
+5. spark_jobs/gold_load.py
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
+
+spark = SparkSession.builder \
+    .appName('GoldLoad') \
+    .enableHiveSupport() \
+    .getOrCreate()
+
+silver_df = spark.read.parquet('/data/silver/customer/')
+
+gold_df = silver_df.filter(col('YearlyIncome') > 50000)
+
+# Load into Hive
+
+gold_df.write \
+    .mode('overwrite') \
+    .partitionBy('GeographyKey') \
+    .saveAsTable('customer_gold')
+
+# Load into S3
+
+gold_df.write \
+    .mode('overwrite') \
+    .partitionBy('GeographyKey') \
+    .parquet('s3a://customer-data/gold/customer/')
+
+print('Gold layer load completed')
+====================================================================
+6. kubernetes/spark-deployment.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark
+  template:
+    metadata:
+      labels:
+        app: spark
+    spec:
+      containers:
+      - name: spark-container
+        image: customer-pipeline:latest
+        ports:
+        - containerPort: 4040
+====================================================================
+7. kubernetes/airflow-deployment.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow
+  template:
+    metadata:
+      labels:
+        app: airflow
+    spec:
+      containers:
+      - name: airflow-container
+        image: apache/airflow:latest
+        ports:
+        - containerPort: 8080
+=================================================================
+8. hive/customer_table.hql
+
+CREATE EXTERNAL TABLE IF NOT EXISTS customer_gold (
+    CustomerKey INT,
+    GeographyKey INT,
+    CustomerAlternateKey STRING,
+    FirstName STRING,
+    LastName STRING,
+    EmailAddress STRING,
+    YearlyIncome DOUBLE
+)
+PARTITIONED BY (GeographyKey INT)
+STORED AS PARQUET
+LOCATION '/warehouse/customer_gold';
+==============================================================
+9. configs/app_config.json
+
+{
+  "sqlserver": {
+    "jdbc_url": "jdbc:sqlserver://localhost:1433;databaseName=MyTest",
+    "user": "sa",
+    "password": "Password123",
+    "source_table": "dbo.Customer"
+  },
+  "s3": {
+    "bucket": "customer-data"
+  }
+}
+
+================================================================
+10. docker/Dockerfile
+
+FROM apache/spark-py:latest
+
+WORKDIR /app
+
+COPY . /app
+
+RUN pip install pyspark apache-airflow
+
+CMD ["bash"]
+=============================================================
+11. sample_data/customer.csv
+
+CustomerKey,GeographyKey,CustomerAlternateKey,FirstName,LastName,EmailAddress,YearlyIncome
+1,101,AW0001,John,Doe,john.doe@email.com,65000
+2,102,AW0002,Jane,Smith,jane.smith@email.com,72000
+3,103,AW0003,Michael,Johnson,michael.j@email.com,45000
+4,104,AW0004,Emily,Brown,emily.b@email.com,81000
+5,105,AW0005,David,Wilson,david.w@email.com,92000
+
+=============================================================
+12. README.md
+
+# Customer Data Platform
+
+## Technologies Used
+- SQL Server
+- Spark
+- PySpark
+- Airflow
+- Kubernetes
+- Hive
+- S3
+- Docker
+- Databricks
+
+---
+
+# Project Flow
+
+SQL Server
+   ↓
+Airflow DAG
+   ↓
+Kubernetes Pod
+   ↓
+Spark Extraction
+   ↓
+Bronze Layer
+   ↓
+Silver Layer
+   ↓
+Gold Layer
+   ↓
+Hive + S3
+
+---
+
+# Run Docker
+
+```bash
+docker build -t customer-pipeline .
+==================================================================
+
+=>Run Kubernetes Deployment
+
+kubectl apply -f kubernetes/spark-deployment.yaml
+kubectl apply -f kubernetes/airflow-deployment.yaml
+
+=>Run Airflow
+airflow standalone
+
+=> Pipeline Schedule
+Runs every Monday-Friday at 11:30 PM EST.
+
+Cron:30 23 * * 1-5
+
+=> Incremental Load Logic
+Use watermark column:
+
+WHERE updated_date > last_watermark
+
+=>
+## Step 1
+SQL Server से Customer data extract होगा.
+
+## Step 2
+Airflow DAG scheduler pipeline trigger करेगा.
+
+## Step 3
+Kubernetes pod create करेगा.
+
+## Step 4
+Spark job raw data Bronze layer में load करेगा.
+
+## Step 5
+Silver layer cleaning और transformation करेगा.
+
+## Step 6
+Gold layer business filtering करेगा.
+
+## Step 7
+Final data Hive और S3 में partition format में store होगा.
+
+## Step 8
+Airflow monitoring और retry manage करेगा.
+
+---
+
+# 🎯 Final Understanding
+
+Airflow = What and When to run
+
+Kubernetes = Where and How to run
+
+Spark = Data processing
+
+Hive = Data warehouse
+
+S3 = Storage
+
+
+
+
+
+
+
+
+
